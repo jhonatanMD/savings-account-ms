@@ -1,9 +1,9 @@
 package com.savings.account.model;
 
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import reactor.core.publisher.Flux;
 
 @Document(collection = "SavingAccount")
 public class SavingEntity {
@@ -15,10 +15,22 @@ public class SavingEntity {
 	
 	private Double cash;
 	
-	private String codStaf;
+	private String profile;
 	
-	private Flux<HeadLineEntity> head;
-
+	private Double cashEndMonth;
+	
+	private int numTran;
+	
+	private Double commi;
+	
+	private String status;
+		
+	private List<EntityTransaction> transactions;
+	
+	private List<HeadLineEntity> heads;
+	
+	private List<SignatoriesEntity> sigs;
+	
 	public String getCodSav() {
 		return codSav;
 	}
@@ -43,32 +55,71 @@ public class SavingEntity {
 		this.cash = cash;
 	}
 
-	public String getCodStaf() {
-		return codStaf;
-	}
-
-	public void setCodStaf(String codStaf) {
-		this.codStaf = codStaf;
-	}
-
-	public Flux<HeadLineEntity> getHead() {
-		return head;
-	}
-
-	public void setHead(Flux<HeadLineEntity> head) {
-		this.head = head;
-	}
 	
-	//private Flux<String> firm;
-
-
-
-/*	public Flux<String> getFirm() {
-		return firm;
+	public String getProfile() {
+		return profile;
 	}
 
-	public void setFirm(Flux<String> firm) {
-		this.firm = firm;
+	public void setProfile(String profile) {
+		this.profile = profile;
 	}
-	*/
+
+
+	public Double getCashEndMonth() {
+		return cashEndMonth;
+	}
+
+	public void setCashEndMonth(Double cashEndMonth) {
+		this.cashEndMonth = cashEndMonth;
+	}
+
+	public int getNumTran() {
+		return numTran;
+	}
+
+	public void setNumTran(int numTran) {
+		this.numTran = numTran;
+	}
+
+	
+	public Double getCommi() {
+		return commi;
+	}
+
+	public void setCommi(Double commi) {
+		this.commi = commi;
+	}
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
+	public List<EntityTransaction> getTransactions() {
+		return transactions;
+	}
+
+	public void setTransactions(List<EntityTransaction> transactions) {
+		this.transactions = transactions;
+	}
+
+	public List<HeadLineEntity> getHeads() {
+		return heads;
+	}
+
+	public void setHeads(List<HeadLineEntity> heads) {
+		this.heads = heads;
+	}
+
+	public List<SignatoriesEntity> getSigs() {
+		return sigs;
+	}
+
+	public void setSigs(List<SignatoriesEntity> sigs) {
+		this.sigs = sigs;
+	}
+
 }
