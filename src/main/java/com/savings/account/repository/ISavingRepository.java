@@ -1,5 +1,6 @@
 package com.savings.account.repository;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.data.mongodb.repository.Query;
@@ -24,5 +25,11 @@ public interface ISavingRepository extends ReactiveMongoRepository<SavingEntity,
 
 	
 	@Query("{'heads.dniH':  ?0}")
-	Mono<SavingEntity> findByDoc(String doc);
+	Flux<SavingEntity> findByDoc(String doc);
+	
+	@Query("{'transactions.dateTra':{ $gte:ISODate( '?1' ), $lt:ISODate( '?2' ) } , 'numAcc':?3 }")
+	Flux<SavingEntity> findByDates(Date from , Date until,String numAcc);
+	
+
+	Flux<SavingEntity> findByNumAccAndTransactionsDateTraBetween(String numAcc,String from , String until);
 }

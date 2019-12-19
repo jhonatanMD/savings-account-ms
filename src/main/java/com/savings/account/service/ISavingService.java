@@ -1,5 +1,7 @@
 package com.savings.account.service;
 
+import java.util.Date;
+
 import com.savings.account.model.SavingEntity;
 
 import reactor.core.publisher.Flux;
@@ -17,8 +19,10 @@ public interface ISavingService {
 	Mono<Void> dltSaving(String id);
 	
 	Flux<SavingEntity> findBytitularesByDoc(SavingEntity saving);
-	Mono<SavingEntity> findByDoc(String doc);
+	Flux<SavingEntity> findByDoc(String doc);
 	
 	Mono<SavingEntity> payCreditCard(String numAcc,String numCard,Double cash);
+	
+	Flux<SavingEntity> findByDates (String from, String until, String numAcc); 
 	
 }

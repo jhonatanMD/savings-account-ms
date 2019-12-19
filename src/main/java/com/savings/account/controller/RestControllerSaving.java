@@ -1,5 +1,10 @@
 package com.savings.account.controller;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,10 +40,17 @@ public class RestControllerSaving {
 		return savingImpl.findByNumAcc(numAcc);
 	}
 	
+	@GetMapping("/getSavingDate/{from}/{until}/{numAcc}")
+	Flux<SavingEntity> getSavingDate(@PathVariable("from") String from ,@PathVariable("until") 
+	String until,@PathVariable("numAcc") String numAcc) throws ParseException{
+			
+		return savingImpl.findByDates(from,until, numAcc);
+	}
+	
 	
 	
 	@GetMapping("/getSavingDocu/{numDoc}")
-	Mono<SavingEntity> getSavingDoc(@PathVariable("numDoc") String numDoc){	
+	Flux<SavingEntity> getSavingDoc(@PathVariable("numDoc") String numDoc){	
 		
 		
 		return savingImpl.findByDoc(numDoc);

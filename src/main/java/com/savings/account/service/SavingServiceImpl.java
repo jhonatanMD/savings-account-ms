@@ -143,7 +143,7 @@ public class SavingServiceImpl implements ISavingService {
 
 
 	@Override
-	public Mono<SavingEntity> findByDoc(String doc) {
+	public Flux<SavingEntity> findByDoc(String doc) {
 		// TODO Auto-generated method stub
 		return repository.findByDoc(doc);
 	}
@@ -180,6 +180,13 @@ public class SavingServiceImpl implements ISavingService {
 			p.setTransactions(listTransaction);
 	return repository.save(p);
 		});
+	}
+
+
+	@Override
+	public Flux<SavingEntity> findByDates(String from, String until, String numAcc) {
+		// TODO Auto-generated method stub
+		return repository.findByNumAccAndTransactionsDateTraBetween(numAcc,from, until);
 	}
 	
 	
