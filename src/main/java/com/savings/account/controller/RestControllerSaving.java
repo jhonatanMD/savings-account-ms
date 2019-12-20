@@ -1,9 +1,6 @@
 package com.savings.account.controller;
 
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.savings.account.model.EntityTransaction;
 import com.savings.account.model.SavingEntity;
 import com.savings.account.service.ISavingService;
 
@@ -87,7 +85,7 @@ public class RestControllerSaving {
 	}
 
 	@PostMapping("/updTransancionSaving/{numAcc}/{tipo}/{cash}")
-	Mono<SavingEntity> updTransancionSaving(@PathVariable("numAcc") String numAcc
+	Mono<EntityTransaction> updTransancionSaving(@PathVariable("numAcc") String numAcc
 			,@PathVariable("tipo") String tipo ,@PathVariable("cash")  Double cash){
 	
 			return savingImpl.transactiosSaving(numAcc,tipo,cash);
@@ -96,7 +94,7 @@ public class RestControllerSaving {
 	
 	
 	@PostMapping("/payCreditCard/{numAcc}/{numCard}/{cash}")
-	Mono<SavingEntity> payCreditCard(@PathVariable("numAcc") String numAcc,
+	Mono<EntityTransaction> payCreditCard(@PathVariable("numAcc") String numAcc,
 			@PathVariable("numCard") String numCard,
 			@PathVariable("cash")  Double cash){
 	

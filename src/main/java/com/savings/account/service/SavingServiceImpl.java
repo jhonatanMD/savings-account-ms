@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import com.savings.account.model.EntityCreditCard;
 import com.savings.account.model.EntityTransaction;
 import com.savings.account.model.SavingEntity;
 import com.savings.account.repository.ISavingRepository;
@@ -52,7 +51,7 @@ public class SavingServiceImpl implements ISavingService {
 
 		List<String> doc = new ArrayList<>();
 		saving.getHeads().forEach(head -> doc.add(head.getDniH()));
-		return repository.findBytitularesByDocProfile(doc,saving.getProfile())
+		return repository.findBytitularesByDocProfileByBank(doc,saving.getProfile(),saving.getBank())
 				.switchIfEmpty(repository.save(saving).flatMap(sv->{
 			return Mono.just(sv);
 		})).next();
@@ -85,12 +84,11 @@ public class SavingServiceImpl implements ISavingService {
 
 	//Registrar Transacciones de la cuenta de ahorro
 	@Override
-	public Mono<SavingEntity> transactiosSaving(String numAcc,String tipo, Double cash) {
+	public Mono<EntityTransaction> transactiosSaving(String numAcc,String tipo, Double cash) {
 		return repository.findByNumAcc(numAcc)
 				.flatMap(p ->{
 				//	Collections.sort(p.getTransactions(),Collections.reverseOrder());
 					transaction = new EntityTransaction();
-					listTransaction = new ArrayList<>();
 					transaction.setCashA(p.getCash());
 									
 						if(p.getNumTran() > 0) {
@@ -113,6 +111,7 @@ public class SavingServiceImpl implements ISavingService {
 								if(p.getCash() != 0.0) {
 									ope = true;
 									p.setCash( p.getCash() + cash - p.getCommi());
+									transaction.setCommi(p.getCommi());
 								}
 							}
 							
@@ -123,19 +122,13 @@ public class SavingServiceImpl implements ISavingService {
 					transaction.setType(tipo);
 					transaction.setCashO(cash);
 					transaction.setCashT(p.getCash());
-					transaction.setDateTra(dt);
-					
-					if(p.getTransactions() != null) {
-					p.getTransactions().forEach(transac-> {
-						listTransaction.add(transac);
-						});
-					}
-					listTransaction.add(transaction);
-					p.setTransactions(listTransaction);
-					return repository.save(p);
+					transaction.setDateTra(new Date());
+					transaction.setNumAcc(numAcc);
+					repository.save(p).subscribe();
+					return Mono.just(transaction);// ;
 				}else {
 					
-					return Mono.just(p);
+					return Mono.just(transaction);
 				}
 					
 			});
@@ -150,43 +143,62 @@ public class SavingServiceImpl implements ISavingService {
 
 
 	@Override
-	public Mono<SavingEntity> payCreditCard(String numAcc, String numCard, Double cash) {
+	public Mono<EntityTransaction> payCreditCard(String numAcc, String numCard, Double cash) {
 		// TODO Auto-generated method stub
 		transaction = new EntityTransaction() ;
-		listTransaction = new ArrayList<>();
 		
 		return repository.findByNumAcc(numAcc).flatMap(p ->{
 			
-			transaction.setCashA(p.getCash());
-			if(p.getCash() >= cash) {
-				p.setCash(p.getCash() - cash);
-				System.out.println(numAcc +" cash : "+cash);
+			if(p.getCash() >= cash && p.getNumTran() > 0) {
+			return	client.post().uri("/credit-card/api/updTransancionesCreditCard/"+numCard+"/p/"+cash)
+				.retrieve().bodyToMono(EntityTransaction.class).flatMap(tran -> {
+		
+					 		transaction.setCashA(p.getCash());
+							p.setNumTran(p.getNumTran() -1);
+							p.setCash(p.getCash() - cash);
+							transaction.setNumAcc(numAcc);
+							transaction.setCashO(cash);
+							transaction.setCashT(p.getCash());
+							transaction.setCommi(0.0);
+							transaction.setType("r");
+							transaction.setDateTra(tran.getDateTra());
+							repository.save(p).subscribe();
+					 return Mono.just(transaction);
+					
+				});	
+			}else if(p.getCash() >= cash + p.getCommi() && p.getNumTran() == 0){
+				return	client.post().uri("/credit-card/api/updTransancionesCreditCard/"+numCard+"/p/"+cash)
+						.retrieve().bodyToMono(EntityTransaction.class).flatMap(tran -> {
 				
-				client.post().uri("/credit-card/api/updTransancionesCreditCard/"+numCard+"/p/"+cash)
-				.retrieve().bodyToMono(EntityCreditCard.class).subscribe();	
+							 		transaction.setCashA(p.getCash());
+									p.setCash(p.getCash() - cash - p.getCommi());
+									transaction.setCashO(cash);
+									transaction.setNumAcc(numAcc);
+									transaction.setCashT(p.getCash());
+									transaction.setCommi(p.getCommi());
+									transaction.setType("r");
+									transaction.setDateTra(tran.getDateTra());
+									repository.save(p).subscribe();
+									
+							 return Mono.just(transaction);
+							
+						});	
+
 			}
-			transaction.setType("pago");
-			 transaction.setCashO(cash);
-			 transaction.setCashT(p.getCash());
-			 transaction.setDateTra(dt);
-			listTransaction = new ArrayList<>();
-			if(p.getTransactions()!=null)
-			{
-				p.getTransactions().forEach(transac-> {
-					listTransaction.add(transac);
-				});
-			}
-			listTransaction.add(transaction);
-			p.setTransactions(listTransaction);
-	return repository.save(p);
+			
+			
+			return Mono.just(transaction);
+			
 		});
+		 
+		// return Mono.just(transaction);
 	}
 
 
 	@Override
 	public Flux<SavingEntity> findByDates(String from, String until, String numAcc) {
 		// TODO Auto-generated method stub
-		return repository.findByNumAccAndTransactionsDateTraBetween(numAcc,from, until);
+		return null;
 	}
 	
 	

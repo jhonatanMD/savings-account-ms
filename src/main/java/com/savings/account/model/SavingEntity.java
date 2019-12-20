@@ -24,9 +24,7 @@ public class SavingEntity {
 	private Double commi;
 	
 	private String status;
-		
-	private List<EntityTransaction> transactions;
-	
+	private String bank;
 	private List<HeadLineEntity> heads;
 	
 	private List<SignatoriesEntity> sigs;
@@ -98,12 +96,12 @@ public class SavingEntity {
 		this.status = status;
 	}
 
-	public List<EntityTransaction> getTransactions() {
-		return transactions;
+	public String getBank() {
+		return bank;
 	}
 
-	public void setTransactions(List<EntityTransaction> transactions) {
-		this.transactions = transactions;
+	public void setBank(String bank) {
+		this.bank = bank;
 	}
 
 	public List<HeadLineEntity> getHeads() {
