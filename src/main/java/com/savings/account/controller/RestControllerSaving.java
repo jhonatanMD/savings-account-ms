@@ -38,12 +38,7 @@ public class RestControllerSaving {
 		return savingImpl.findByNumAcc(numAcc);
 	}
 	
-	@GetMapping("/getSavingDate/{from}/{until}/{numAcc}")
-	Flux<SavingEntity> getSavingDate(@PathVariable("from") String from ,@PathVariable("until") 
-	String until,@PathVariable("numAcc") String numAcc) throws ParseException{
-			
-		return savingImpl.findByDates(from,until, numAcc);
-	}
+	
 	
 	
 	
@@ -84,6 +79,7 @@ public class RestControllerSaving {
 					});*/
 	}
 
+
 	@PostMapping("/updTransancionSaving/{numAcc}/{tipo}/{cash}")
 	Mono<EntityTransaction> updTransancionSaving(@PathVariable("numAcc") String numAcc
 			,@PathVariable("tipo") String tipo ,@PathVariable("cash")  Double cash){
@@ -93,7 +89,7 @@ public class RestControllerSaving {
 	}
 	
 	
-	@PostMapping("/payCreditCard/{numAcc}/{numCard}/{cash}")
+	/*@PostMapping("/payCreditCard/{numAcc}/{numCard}/{cash}")
 	Mono<EntityTransaction> payCreditCard(@PathVariable("numAcc") String numAcc,
 			@PathVariable("numCard") String numCard,
 			@PathVariable("cash")  Double cash){
@@ -101,6 +97,18 @@ public class RestControllerSaving {
 			return savingImpl.payCreditCard(numAcc,numCard,cash);
 
 	}
+	*/
+	
+	@PostMapping("/opeMovement/{numAcc}/{numDest}/{cash}/{type}")
+	Mono<EntityTransaction> opeMovement(@PathVariable("numAcc") String numAcc,
+			@PathVariable("numDest") String numDest,
+			@PathVariable("cash")  Double cash,@PathVariable("type") String type){
+	
+			return savingImpl.opeMovement(numAcc,numDest,cash,type);
+
+	}
+	
+	
 	
 	@PutMapping("/updSaving/{id}")
 	Mono<SavingEntity> updSaving(@PathVariable("id") String id,@RequestBody SavingEntity saving){

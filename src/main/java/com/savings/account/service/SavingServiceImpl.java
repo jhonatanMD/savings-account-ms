@@ -1,19 +1,18 @@
 package com.savings.account.service;
 
+import com.savings.account.model.EntityTransaction;
+import com.savings.account.model.SavingEntity;
+import com.savings.account.repository.ISavingRepository;
+import com.savings.account.webclient.CallWebClient;
 
 import java.util.ArrayList;
+
 import java.util.Date;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
-
-import com.savings.account.model.EntityTransaction;
-import com.savings.account.model.SavingEntity;
-import com.savings.account.repository.ISavingRepository;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -21,42 +20,47 @@ import reactor.core.publisher.Mono;
 @Service
 public class SavingServiceImpl implements ISavingService {
 
-	WebClient client = WebClient.builder().baseUrl("http://localhost:8881")
-	.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE).build();
+  @Autowired
+  ISavingRepository repository;
+  
+  @Autowired
+  @Qualifier("webClient")
+  CallWebClient webClient;
+  
+  EntityTransaction transaction;
+  List<EntityTransaction> listTransaction;
+  Date dt = new Date();
+  List<String> doc;
+  Boolean ope;
+  Double commi;
+  int num;
+  
+  @Override
+  public Flux<SavingEntity> allSaving() {
+    return repository.findAll();
+  }
 
-	@Autowired
-	ISavingRepository repository;
-	
-	EntityTransaction transaction;
-	List<EntityTransaction> listTransaction;
-	Date dt = new Date();
-	List<String> doc;
-	Boolean ope = false;
-	
-	@Override
-	public Flux<SavingEntity> allSaving() {
-		// TODO Auto-generated method stub
-		return repository.findAll();
-	}
 
+  @Override
+  public Mono<Void> dltSaving(String id) {
+    return repository.deleteById(id);
+  }
 
-	@Override
-	public Mono<Void> dltSaving(String id) {
-		// TODO Auto-generated method stub	
-		return repository.deleteById(id);
-	}
+  @Override
+  public Mono<SavingEntity> saveSaving(SavingEntity saving) {
 
-	@Override
-	public Mono<SavingEntity> saveSaving(SavingEntity saving) {
-
-		List<String> doc = new ArrayList<>();
-		saving.getHeads().forEach(head -> doc.add(head.getDniH()));
-		return repository.findBytitularesByDocProfileByBank(doc,saving.getProfile(),saving.getBank())
-				.switchIfEmpty(repository.save(saving).flatMap(sv->{
-			return Mono.just(sv);
-		})).next();
-		
-	}
+    List<String> doc = new ArrayList<>();
+    
+    if(saving.getProfile().equals("N")) {
+    	saving.setCashEndMonth(0.0);
+    }
+    
+    saving.getHeads().forEach(head -> doc.add(head.getDniH()));
+    return repository.findBytitularesByDocProfileByBank(doc,saving.getProfile(),saving.getBank())
+.switchIfEmpty(repository.save(saving).flatMap(sv -> {
+  return Mono.just(sv);
+})).next();
+  }
 
 
 	@Override
@@ -87,6 +91,7 @@ public class SavingServiceImpl implements ISavingService {
 	public Mono<EntityTransaction> transactiosSaving(String numAcc,String tipo, Double cash) {
 		return repository.findByNumAcc(numAcc)
 				.flatMap(p ->{
+					ope = false;
 				//	Collections.sort(p.getTransactions(),Collections.reverseOrder());
 					transaction = new EntityTransaction();
 					transaction.setCashA(p.getCash());
@@ -148,7 +153,7 @@ public class SavingServiceImpl implements ISavingService {
 		transaction = new EntityTransaction() ;
 		
 		return repository.findByNumAcc(numAcc).flatMap(p ->{
-			
+		/*	
 			if(p.getCash() >= cash && p.getNumTran() > 0) {
 			return	client.post().uri("/credit-card/api/updTransancionesCreditCard/"+numCard+"/p/"+cash)
 				.retrieve().bodyToMono(EntityTransaction.class).flatMap(tran -> {
@@ -184,7 +189,7 @@ public class SavingServiceImpl implements ISavingService {
 							
 						});	
 
-			}
+			}*/
 			
 			
 			return Mono.just(transaction);
@@ -196,9 +201,53 @@ public class SavingServiceImpl implements ISavingService {
 
 
 	@Override
-	public Flux<SavingEntity> findByDates(String from, String until, String numAcc) {
+	public Mono<EntityTransaction> opeMovement(String numAcc, String numDest, Double cash, String type) {
 		// TODO Auto-generated method stub
-		return null;
+		ope = false;
+		transaction = new EntityTransaction();
+		return repository.findByNumAcc(numAcc).flatMap(p ->{
+			
+			if(p.getCash() >= cash && p.getNumTran() > 0) {
+				 commi = 0.0;
+				 num = 1;
+				 ope = true;
+			}else if(p.getCash() >= cash + p.getCommi() && p.getNumTran() == 0){
+				commi = p.getCommi();
+				num = 0;
+				ope = true;
+			}
+
+			if(ope) {
+				if(type.equals("CC")) {
+					return	webClient.payCredit(transaction, p, numAcc, numDest, cash,commi,num);
+				}else if(type.equals("CA")) {
+					return webClient.opeCurrent(transaction, p, numAcc, numDest, cash,commi,num);
+				}else if(type.equals("SA")) {
+					repository.findByNumAcc(numDest).flatMap(savingDest ->{
+						
+						transaction.setCashA(p.getCash());
+						p.setNumTran(p.getNumTran() - num);
+						p.setCash(p.getCash() - cash - commi);
+						transaction.setCashO(cash);
+						transaction.setCashT(p.getCash());
+						transaction.setNumAcc(numAcc);
+						transaction.setCommi(commi);
+						transaction.setType("r");
+						transaction.setDateTra(new Date());
+						
+						savingDest.setCash(savingDest.getCash() + cash);
+						
+						repository.save(savingDest).subscribe();
+						repository.save(p).subscribe();
+						
+						return Mono.just(savingDest);
+					}).subscribe();
+				}
+			}
+			
+			return Mono.just(transaction);
+			
+		});
 	}
 	
 	
