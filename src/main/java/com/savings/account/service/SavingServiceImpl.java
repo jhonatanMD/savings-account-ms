@@ -1,12 +1,6 @@
 package com.savings.account.service;
 
-import com.savings.account.model.EntityTransaction;
-import com.savings.account.model.SavingEntity;
-import com.savings.account.repository.ISavingRepository;
-import com.savings.account.webclient.CallWebClient;
-
 import java.util.ArrayList;
-
 import java.util.Date;
 import java.util.List;
 
@@ -14,6 +8,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import com.savings.account.model.EntityTransaction;
+import com.savings.account.model.SavingEntity;
+import com.savings.account.repository.ISavingRepository;
+import com.savings.account.webclient.CallWebClient;
+
+import net.bytebuddy.asm.Advice.Return;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -34,7 +34,7 @@ public class SavingServiceImpl implements ISavingService {
   Boolean ope;
   Double commi;
   int num;
-  
+  String msg;
   @Override
   public Flux<SavingEntity> allSaving() {
     return repository.findAll();
@@ -54,12 +54,55 @@ public class SavingServiceImpl implements ISavingService {
     if(saving.getProfile().equals("N")) {
     	saving.setCashEndMonth(0.0);
     }
-    
+   
     saving.getHeads().forEach(head -> doc.add(head.getDniH()));
-    return repository.findBytitularesByDocProfileByBank(doc,saving.getProfile(),saving.getBank())
-.switchIfEmpty(repository.save(saving).flatMap(sv -> {
-  return Mono.just(sv);
-})).next();
+    
+   /* return webClient.responde(doc).map(sv ->{
+    	return Mono.just(saving);
+    }).switchIfEmpty( */
+    
+  /*  return repository.findBytitularesByDocProfileByBank
+    				(doc,saving.getProfile(),saving.getBank()).flatMap(sv ->{
+    					return Mono.just(sv);
+    				}).switchIfEmpty(
+    						repository.save(saving).map(sv -> {
+          					  return Mono.just(sv);
+          					})
+          				);
+    			);*/
+    
+  /*  
+    */
+   return repository.findBytitularesByDocProfileByBank(doc,saving.getProfile(),saving.getBank())
+	.switchIfEmpty(
+		  webClient.responde(doc).flatMap(s ->{
+			if(s.getMsg().equals("")) {
+			return repository.save(saving).flatMap(sv -> {
+				  return Mono.just(sv);
+				});
+		    }else {
+		    	return Mono.just(null);
+		    }
+			
+		  })
+		).next();
+	
+ 
+    
+ /* return Flux.fromIterable(saving.getHeads()).flatMap(head ->{
+    	doc.add(head.getDniH());
+    	return webClient.responde(head.getDniH()).map(rs ->{
+    		 msg = rs.getMsg();
+    		 return msg;
+    	}).flatMap( res -> {
+    		if(res.equals("")) {
+    			return   repository.findBytitularesByDocProfileByBank(doc,saving.getProfile(),saving.getBank())
+        				
+    		}else {
+			return null;}
+    	});
+    }).next(); 
+    */
   }
 
 
