@@ -1,5 +1,8 @@
 package com.savings.account.controller;
 
+import java.text.ParseException;
+import java.util.Date;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -38,14 +41,18 @@ public class RestControllerSaving {
 	
 	@GetMapping("/getSavingDocu/{numDoc}")
 	Flux<SavingEntity> getSavingDoc(@PathVariable("numDoc") String numDoc){	
-		
-		
 		return savingImpl.findByDoc(numDoc);
 	}
 	
 	@GetMapping("/getSavingDoc")
 	Flux<SavingEntity> getSavingDoc(@RequestBody SavingEntity savingEntity){	
 		return savingImpl.findBytitularesByDoc(savingEntity);
+	}
+	
+	@GetMapping("/getSavingDates/{doc}/{dt1}/{dt2}/{bank}")
+	Flux<SavingEntity> getSaving(@PathVariable("doc") String doc,@PathVariable("dt1") String dt1
+			,@PathVariable("dt2") String dt2,@PathVariable("bank") String bank) throws ParseException{	
+		return savingImpl.findByAccount(doc, dt1, dt2, bank);
 	}
 	
 	@PostMapping("/postSaving")

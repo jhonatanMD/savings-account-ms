@@ -1,5 +1,7 @@
 package com.savings.account.service;
 
+import java.text.ParseException;
+
 import com.savings.account.model.EntityTransaction;
 import com.savings.account.model.SavingEntity;
 
@@ -27,4 +29,6 @@ public interface ISavingService {
   Mono<EntityTransaction> payCreditCard(String numAcc,String numCard,Double cash);
 
   Mono<EntityTransaction> opeMovement(String numAcc,String numDest,Double cash,String type);
+  
+  Flux<SavingEntity> findByAccount(String doc,String dt1 ,String dt2, String bank) throws ParseException;
 }

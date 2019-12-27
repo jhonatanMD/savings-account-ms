@@ -1,5 +1,7 @@
 package com.savings.account.service;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -13,7 +15,6 @@ import com.savings.account.model.SavingEntity;
 import com.savings.account.repository.ISavingRepository;
 import com.savings.account.webclient.CallWebClient;
 
-import net.bytebuddy.asm.Advice.Return;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -54,25 +55,9 @@ public class SavingServiceImpl implements ISavingService {
     if(saving.getProfile().equals("N")) {
     	saving.setCashEndMonth(0.0);
     }
-   
+    saving.setDateOpen(new Date());
     saving.getHeads().forEach(head -> doc.add(head.getDniH()));
     
-   /* return webClient.responde(doc).map(sv ->{
-    	return Mono.just(saving);
-    }).switchIfEmpty( */
-    
-  /*  return repository.findBytitularesByDocProfileByBank
-    				(doc,saving.getProfile(),saving.getBank()).flatMap(sv ->{
-    					return Mono.just(sv);
-    				}).switchIfEmpty(
-    						repository.save(saving).map(sv -> {
-          					  return Mono.just(sv);
-          					})
-          				);
-    			);*/
-    
-  /*  
-    */
    return repository.findBytitularesByDocProfileByBank(doc,saving.getProfile(),saving.getBank())
 	.switchIfEmpty(
 		  webClient.responde(doc).flatMap(s ->{
@@ -86,23 +71,6 @@ public class SavingServiceImpl implements ISavingService {
 			
 		  })
 		).next();
-	
- 
-    
- /* return Flux.fromIterable(saving.getHeads()).flatMap(head ->{
-    	doc.add(head.getDniH());
-    	return webClient.responde(head.getDniH()).map(rs ->{
-    		 msg = rs.getMsg();
-    		 return msg;
-    	}).flatMap( res -> {
-    		if(res.equals("")) {
-    			return   repository.findBytitularesByDocProfileByBank(doc,saving.getProfile(),saving.getBank())
-        				
-    		}else {
-			return null;}
-    	});
-    }).next(); 
-    */
   }
 
 
@@ -291,6 +259,23 @@ public class SavingServiceImpl implements ISavingService {
 			return Mono.just(transaction);
 			
 		});
+	}
+
+
+	@Override
+	public Flux<SavingEntity> findByAccount(String doc, String dt1, String dt2, String bank) throws ParseException {
+		
+
+		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+		return repository.findByBankAndDateOpenBetween(bank,format.parse(dt1),format.parse(dt2))
+				.flatMap(res -> {
+					return Flux.fromIterable(res.getHeads()).flatMap( sv -> {
+							if(sv.getDniH().equals(doc)) {
+								return Flux.just(res);
+							}
+							return Flux.empty();
+					});
+				});
 	}
 	
 	

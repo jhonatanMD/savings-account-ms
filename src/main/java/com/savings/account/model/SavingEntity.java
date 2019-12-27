@@ -1,9 +1,15 @@
 package com.savings.account.model;
 
+import java.util.Date;
 import java.util.List;
+
+import javax.validation.constraints.NotNull;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonFormat.Shape;
 
 @Document(collection = "SavingAccount")
 public class SavingEntity {
@@ -25,7 +31,11 @@ public class SavingEntity {
 	
 	private String status;
 	private String bank;
-	private List<HeadLineEntity> heads;
+	
+	@JsonFormat(pattern = "yyyy-MM-dd", shape = Shape.STRING)
+	@NotNull
+	private Date dateOpen;
+  private List<HeadLineEntity> heads;
 	
 	private List<SignatoriesEntity> sigs;
 	
@@ -102,6 +112,14 @@ public class SavingEntity {
 
 	public void setBank(String bank) {
 		this.bank = bank;
+	}
+	
+	public Date getDateOpen() {
+		return dateOpen;
+	}
+
+	public void setDateOpen(Date dateOpen) {
+		this.dateOpen = dateOpen;
 	}
 
 	public List<HeadLineEntity> getHeads() {
