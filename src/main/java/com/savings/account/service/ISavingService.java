@@ -30,5 +30,5 @@ public interface ISavingService {
 
   Mono<EntityTransaction> opeMovement(String numAcc,String numDest,Double cash,String type);
   
-  Flux<SavingEntity> findByAccount(String doc,String dt1 ,String dt2, String bank) throws ParseException;
+  Flux<SavingEntity> findByAccount(String dt1 ,String dt2, String bank) throws ParseException;
 }

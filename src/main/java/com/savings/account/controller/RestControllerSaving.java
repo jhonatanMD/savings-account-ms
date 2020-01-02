@@ -49,11 +49,12 @@ public class RestControllerSaving {
 		return savingImpl.findBytitularesByDoc(savingEntity);
 	}
 	
-	@GetMapping("/getSavingDates/{doc}/{dt1}/{dt2}/{bank}")
-	Flux<SavingEntity> getSaving(@PathVariable("doc") String doc,@PathVariable("dt1") String dt1
+	@GetMapping("/getSavingDates/{dt1}/{dt2}/{bank}")
+	Flux<SavingEntity> getSaving(@PathVariable("dt1") String dt1
 			,@PathVariable("dt2") String dt2,@PathVariable("bank") String bank) throws ParseException{	
-		return savingImpl.findByAccount(doc, dt1, dt2, bank);
+		return savingImpl.findByAccount(dt1, dt2, bank);
 	}
+	
 	
 	@PostMapping("/postSaving")
 	Mono<SavingEntity> postSaving(@RequestBody SavingEntity savingEntity){

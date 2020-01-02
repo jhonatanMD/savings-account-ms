@@ -9,8 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import com.savings.account.model.EntityDebtor;
 import com.savings.account.model.EntityTransaction;
-import com.savings.account.model.InfoResponse;
 import com.savings.account.model.SavingEntity;
 import com.savings.account.repository.ISavingRepository;
 
@@ -72,9 +72,9 @@ public class CallWebClient {
 	 
 	 
 	 
-	 public Mono<InfoResponse> responde (List<String> numDoc){
+	 public Mono<EntityDebtor> responde (List<String> numDoc){
 		 return client.post().uri("/bank/api/getDeudas").syncBody(numDoc)
-			.retrieve().bodyToMono(InfoResponse.class).flatMap(rs -> {	
+			.retrieve().bodyToMono(EntityDebtor.class).flatMap(rs -> {	
 					return Mono.just(rs);
 			});
 	 }

@@ -30,7 +30,7 @@ public class SavingServiceImpl implements ISavingService {
   
   EntityTransaction transaction;
   List<EntityTransaction> listTransaction;
-  Date dt = new Date();
+  SimpleDateFormat format;
   List<String> doc;
   Boolean ope;
   Double commi;
@@ -59,18 +59,19 @@ public class SavingServiceImpl implements ISavingService {
     saving.getHeads().forEach(head -> doc.add(head.getDniH()));
     
    return repository.findBytitularesByDocProfileByBank(doc,saving.getProfile(),saving.getBank())
-	.switchIfEmpty(
-		  webClient.responde(doc).flatMap(s ->{
-			if(s.getMsg().equals("")) {
-			return repository.save(saving).flatMap(sv -> {
+	.switchIfEmpty( repository.save(saving).flatMap(sv -> {
 				  return Mono.just(sv);
-				});
-		    }else {
+				})
+	).next();
+		  /* 
+		   * //  webClient.responde(doc).flatMap(s ->{
+		//	if(s.getMsj().equals("")) {
+		   *  }else {
 		    	return Mono.just(null);
 		    }
 			
-		  })
-		).next();
+		  })*/
+		
   }
 
 
@@ -263,19 +264,11 @@ public class SavingServiceImpl implements ISavingService {
 
 
 	@Override
-	public Flux<SavingEntity> findByAccount(String doc, String dt1, String dt2, String bank) throws ParseException {
+	public Flux<SavingEntity> findByAccount (String dt1, String dt2, String bank) throws ParseException {
 		
 
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-		return repository.findByBankAndDateOpenBetween(bank,format.parse(dt1),format.parse(dt2))
-				.flatMap(res -> {
-					return Flux.fromIterable(res.getHeads()).flatMap( sv -> {
-							if(sv.getDniH().equals(doc)) {
-								return Flux.just(res);
-							}
-							return Flux.empty();
-					});
-				});
+		format = new SimpleDateFormat("yyyy-MM-dd");
+		return repository.findByBankAndDateOpenBetween(bank,format.parse(dt1),format.parse(dt2));
 	}
 	
 	
